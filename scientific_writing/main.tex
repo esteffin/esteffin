@@ -1,5 +1,6 @@
 \documentclass[10pt]{llncs}
 
+\usepackage{lipsum}
 %\documentclass[10pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
@@ -11,8 +12,8 @@
 
 \author{Enrico Steffinlongo}
 \institute{Universit\`{a} Ca' Foscari Venezia}
-\title{Relationship Based Access Control Model: Formal Definition and Verification}
-%\title{Enforcing security of browser extensions via static analysis}
+%\title{Relationship Based Access Control Model: Formal Definition and Verification}
+\title{Enforcing security of browser extensions: a static analysis approach}
 
 \begin{document}
 \maketitle
@@ -22,35 +23,23 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur convallis orc
 \end{abstract}
 
 \section{Introduction}
-\begin{comment}
-%A crucial point in multi-user computer systems security is access control, since it is necessary to determine which sets of action different users can perform within the system. An access control system comprises a security policy, and a decision function that taken the policy returns the authorization to perform an action on the system. In past decades were studied various approaches to access control, and some of these became very popular for different purposes. One of the most popular is Role-based access control (RBAC) and its administrative version AREBAC. In RBAC, and ARBAC to each user is assigned a set of roles determining permission to perform actions, . 
-%With the widespread of social based systems, 
-\end{comment}
+In the last years web browsers evolved becoming to very powerful and complex software. To enhance their capabilities, modern browsers, provide very powerful extension architecture. Such architecture offers a simple API designed to build extensions that exposes to the extension the user interface, web communication and even internal components of the browser. While some extensions just modify the user interface, other performs to security critical operations like access to the cookie jar, download manager, password storage. Hence often the security of the user private data is strictly bound with the security of the extension installed in the browser. Since browser extensions interacts with web pages that are potentially malicious, they expand the attack surface of the browser and to mitigate this threat they rely on strong security principles like privilege separation \cite{ChromeExtSpec}.
 
-Nunc ut tortor feugiat, tempus eros nec, vestibulum mi. Proin et nibh eget sapien luctus consectetur sit amet sollicitudin sapien. Vivamus aliquam vel nisl vitae placerat. Maecenas volutpat dictum tellus eu iaculis. Nulla at nisl imperdiet, tincidunt massa id, faucibus nisl. Mauris tincidunt vehicula suscipit. Aenean a mauris at velit commodo condimentum. Curabitur venenatis lorem in libero rhoncus accumsan. Nam et hendrerit lorem. Integer gravida urna ut nisl vehicula, nec maximus enim dignissim. Praesent eget viverra dolor.
+Another problem is that browser extensions are written in JavaScript, and for JavaScript there are really few tools to help programmers in development. Moreover there are almost no tools to check statically web applications and browser extensions.
 
-Morbi massa neque, sagittis ut velit ac, lobortis hendrerit tellus. Vivamus non lobortis orci. Duis lobortis neque quis odio vulputate mattis. Pellentesque maximus, mauris a pulvinar aliquet, neque sapien scelerisque velit, eget luctus massa massa ac odio. Mauris bibendum nunc sed velit blandit congue. Proin a lacus malesuada turpis semper pulvinar a in mi. Nam quis fringilla massa, at viverra arcu. Nulla egestas ornare eros, eu hendrerit massa aliquet eget. Mauris aliquet erat ut fringilla molestie.
+To achieve security warranties, various approaches have been adopted in different fields. Some researcher focus on definition of a robust architecture \cite{ChromeExtSpec} and \cite{PriviSep}, such as privilege separated ones where all components are separated in order to reduce the damage done by a compromised component. Other works instead focus on static analysis of JavaScript in order to give to programmers, information about the application. This second approach uses techniques derived from program analysis \cite{PrincipleProgramAnalysis} such flow logic \cite{FlowLogic}, typing \cite{TAJS}, and abstract interpretation \cite{LambdaJSMightVanHorn}.
 
-Pellentesque ornare, massa non ultricies mattis, ante eros semper neque, ac euismod erat purus at metus. Donec dignissim sodales lectus quis luctus. Sed eget enim quis sapien tincidunt tristique ac non lectus. Praesent pellentesque lacus nunc. Etiam molestie mattis neque ut congue. Aenean sit amet ipsum dolor. Sed finibus sapien vitae ultricies imperdiet. Fusce laoreet turpis vestibulum nisi egestas, sit amet mattis ante varius. Sed consectetur auctor quam sit amet euismod. Quisque in arcu congue, bibendum lacus ut, tristique ligula. Sed sed ipsum vitae libero posuere consequat nec in magna. Nam venenatis tempor velit, eu molestie enim bibendum quis. Praesent a quam sed diam fermentum dapibus.
+Even if both approaches mitigate various threat, they are not a real panacea, because the trade-off 
+The aim of this work is to combine both approaches 
 
-Cras aliquet gravida convallis. Praesent auctor feugiat justo, molestie finibus felis interdum quis. In efficitur ornare ipsum, eu luctus ligula gravida at. Donec vitae arcu vitae est venenatis aliquet eget id ligula. Cras et maximus quam. Curabitur pellentesque tellus nibh, in sagittis dui convallis non. Vestibulum sed sem nulla. Sed quis justo placerat, posuere orci non, malesuada urna. Sed diam libero, auctor nec vehicula vel, interdum ut ligula.
-
-Morbi quis nibh ut odio cursus scelerisque. Nunc eget congue urna. Morbi pretium, magna id scelerisque auctor, tortor magna porta massa, quis consequat eros dui sed turpis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nunc sed augue in nibh ornare pulvinar. Aenean sapien urna, scelerisque semper hendrerit et, mattis et nisi. Nulla nec aliquet orci. Etiam nulla neque, fringilla a neque vel, imperdiet placerat arcu. Nam ultricies blandit urna a bibendum. Quisque eget ornare mauris, vel tempus mauris. Nullam eu mi nec mauris finibus pretium sit amet id massa. Nunc egestas libero ac porta rhoncus. Vestibulum odio elit, consectetur vel ipsum hendrerit, eleifend commodo justo.
-
-Fusce ornare viverra convallis. In hac habitasse platea dictumst. Ut quis bibendum felis, varius vehicula eros. In hac habitasse platea dictumst. Maecenas ornare sagittis erat, vitae congue arcu faucibus in. Suspendisse laoreet eget nisl vel imperdiet. Donec et enim lacinia, consequat turpis et, commodo enim. Sed dictum lobortis eros ac tristique. Nam sodales est eu lorem rhoncus, in euismod mi congue. Aliquam a diam eget mauris vestibulum viverra non vel urna. Sed ut turpis nisl. Sed efficitur urna quis dapibus commodo. Curabitur ullamcorper molestie lacus, eget gravida nulla maximus in. Donec vehicula nibh orci, ut interdum ligula fringilla in.
 
 \section{polok}
-
-Donec non felis nisl. Duis ac quam euismod, posuere enim quis, euismod est. Vivamus ut lectus vitae lorem volutpat accumsan id lobortis mauris. Fusce pharetra augue id sodales varius. Sed lacinia urna vehicula, egestas purus eu, cursus sapien. Donec ipsum dolor, porta vitae vehicula ac, vestibulum sit amet turpis. Nam id magna neque. Praesent sit amet consequat augue. Ut luctus dapibus magna, consequat lobortis tellus. Etiam auctor tempor luctus. Aliquam volutpat suscipit sapien sit amet laoreet. Aliquam sed dui a mi interdum bibendum vel sed ex.
-
-Ut malesuada facilisis libero, eleifend elementum velit posuere quis. Vivamus sit amet lorem libero. Vivamus venenatis urna sed dolor imperdiet, id aliquam mi pellentesque. Curabitur ac velit sed ante elementum viverra eget quis nunc. Integer vel odio odio. Pellentesque tincidunt nulla tellus, et suscipit nisi maximus tincidunt. Donec varius at ligula a semper. Aenean scelerisque hendrerit erat. Sed blandit erat tempus, eleifend enim et, egestas nunc. Aliquam interdum luctus vestibulum. Ut lobortis, eros quis hendrerit suscipit, augue ex tincidunt elit, eget tincidunt metus justo ut massa. Etiam vel eros ut tellus gravida varius ac vel sem. Proin libero elit, faucibus a congue nec, tincidunt in eros.
-
-Cras sapien quam, tristique nec iaculis id, rhoncus ut elit. In hac habitasse platea dictumst. Etiam a ligula tortor. Donec sodales mollis augue, sit amet suscipit quam vehicula nec. Pellentesque sed malesuada nibh, vel imperdiet orci. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla a varius diam. Mauris dictum sodales ipsum, sed pulvinar purus consequat a. In nec nunc at sem vehicula egestas. Nullam quis ex libero. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+\lipsum[1-3]
 
 \cite{*}
 
 
 \bibliographystyle{splncs03}
-\bibliography{main}
+\bibliography{thesis}
 
 \end{document}
