@@ -262,6 +262,7 @@ e & ::= & v ~|~ \letexpr{x}{e}{e} ~|~ \appl{e}{e} ~|~ \op(\vec{e_i}) ~|~ \while{
 & | & \send{e}{e}{\rho} ~|~ \exercise{\rho}
 \end{array}$$
 \end{itemize}
+Note that both $\store{e}{e}{e}$ and $\delete{e}{e}$ do not modify the object, but they returns a new updated object.
 \end{frame}
 
 \begin{frame}{The calculus (memories, handlers, instances and system)}
