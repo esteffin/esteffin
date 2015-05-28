@@ -44,6 +44,10 @@ Static Analyses and Program Transformations}
 
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\B}{\mathbb{B}}
+\newcommand{\St}{\mathbb{S}}
+\newcommand{\bbracket}[1]{\llbracket #1 \rrbracket}
+\newcommand{\cceil}[1]{\lceil #1 \rceil}
+
 \begin{document}
 
 \begin{frame}
@@ -65,43 +69,153 @@ Few work on imperative programming languages
 \item seems trivial
 \item ... but i's not
 \end{itemize}
+This work is to proposes three systems (one type based, and two Hoare-logics based) to prove correctness of optimization transformations.
 \end{frame}
 
-\begin{frame}{•}
-
-\end{frame}
-
-\begin{frame}{Some notations}
+\begin{frame}[fragile]{Optimization transformations}
+Transformation of a program to a semantically equivalent one in order to reduce the time used, or to decrease the resources used.\\
+Typical imperative program optimization includes:
 \begin{itemize}
-\item $\mathbb{V} = \{X,Y,\dots\}$ a set of variables
-\item $n\in\Z$ a number, $b\in\B$ a boolean literal
-\item $iop \in \{+,-,\times,\dots\} \subseteq \Z \times \Z \rightarrow \Z$ an integer operation
-\item $bop \in \{<,=,\dots\} \subseteq \Z \times \Z \rightarrow \B$ an integer to boolean operation
-\item $lop \in \{\wedge,\vee,\dots \} \subseteq \B \times \B \rightarrow \B$ a logical operation
-\item $E := n | X | E~iop~E$ integer expressions
-\item $B := b | E~bop~E | \mathtt{not}~B | B~lop~B$ boolean expressions
-\item $C := \mathtt{skip} | X:=E | C;C | \mathtt{if}~B~\mathtt{then}~C~\mathtt{else}~C | \mathtt{while}~B~\mathtt{do}~C$ commands
-\item $\mathbb{a}$
-\item $\llbracket E \rrbracket \mathbb{S}$ evaluation
-\item ddd
-\begin{align}
-\begin{array}{ll}
-ss\\
-\end{array}
-\end{align}
+\item constant propagation
+\item dead-code elimination
+\item program slicing
+\item loop unrolling
+\end{itemize}
+\begin{tabular}{lclcl}
+\begin{lstlisting}
+X := 7;
+Y := Y + 1;
+X := 7;
+Z := X;
+\end{lstlisting}&$\Rightarrow$& 
+\begin{lstlisting}
+X := 7;
+Y := Y + 1;
+X := 7;
+Z := 7;
+\end{lstlisting}&$\Rightarrow$&
+\begin{lstlisting}
+X := 7;
+Y := Y + 1;
+
+Z := 7;
+\end{lstlisting}
+\end{tabular}
+\end{frame}
+
+\begin{frame}[fragile]{Optimization transformations: examples}
+\begin{table}
+\begin{tabular}{l}
+\hline
+\begin{lstlisting}
+X := 3				
+if X = 3 then		
+    X := 7;		    
+else               ==>     
+    skip;                  X := 7;
+Z := X + 1;                Z := 8;
+\end{lstlisting}\\
+\hline
+\begin{lstlisting}
+if X = 3 then            
+    Y := X;                
+else               ==>                
+    Y := 3;                Y := 3
+\end{lstlisting}\\
+\hline
+\begin{lstlisting}
+X := -Y                    X := Y
+Z := Z - X         ==>     Z := Z + X
+X := -X                    
+\end{lstlisting}\\
+\hline
+\end{tabular}
+\caption{Transformation examples}
+\label{Examples}
+\end{table}
+\end{frame}
+
+\begin{frame}{Dependency, Dead Code and Constant (DDCC)}
+\begin{itemize}
+\item Non-standard type system
+\item it derives typed equality between expressions and commands
+\item it works on pairs of programs
+\item has simple types for expressions
+\item has maps from variables to simple types for states
+\item can be seen as a non-interference type system 
+\item it captures only decisions based on known variables. So it is not able to capture patterns like in example 2 of table \{\ref{Examples}\}
+\item does not capture code-motion transformation
 \end{itemize}
 \end{frame}
 
-\begin{frame}{\texttt{while}-Programs}
-
+\begin{frame}{DDCC}
+A simple type $\phi_\tau:=\mathbb{F}_\tau~|~\{c\}_\tau~|~\Delta_\tau~|~\mathbb{T}_\tau$ where $\tau\in\{\mathtt{int,bool}\}$ and $c$ is a constant.
+\begin{itemize}
+\item $\mathbb{F}_\tau$ is an empty type
+\item $\{c\}_\tau$ is the type of a constant $c$ ($5~5 \in \{5,5\}_{int}$)
+\item $\Delta_\tau$ is the type of an unknown expression (if we do not know the value of X $(X + X) \in \Delta_{int}$)
+\item $\mathbb{T}_\tau$ is the type of an expression that we do not care any more.
+\end{itemize}
+A state type $\Phi := -~|~\Phi,X:\phi_{int}$ is a map from variable to simple types.\\
+Judgements are of the form
+\begin{itemize}
+\item $\vdash E~E':\Phi\Rightarrow\phi_\tau$ for expressions.
+\item $\vdash C~C':\Phi\Rightarrow\Phi'$ for commands.
+\end{itemize}
 \end{frame}
 
-\begin{frame}{•}
+\begin{frame}{\texttt{while}-Programs: syntax}
 $$
-\inferrule*[width=10em,lab=(PE-Cond)]
-{ \sqsubseteq \rho}
-{\hat{v} \rho}
+\begin{array}{rcll}
+\mathbb{V} &=& \{X,Y,\dots\} &$ a set of variables$\\
+n &\in& \Z &$ a number,$\\
+b &\in& \B &$ a boolean literal$\\
+iop &\in& \{+,-,\times,\dots\} \subseteq \Z \times \Z \rightarrow \Z &$ an integer operation$\\
+bop &\in& \{<,=,\dots\} \subseteq \Z \times \Z \rightarrow \B &$ an integer to boolean$\\
+&&&$operation$\\
+lop &\in& \{\wedge,\vee,\dots \} \subseteq \B \times \B \rightarrow \B &$ a logical operation$\\
+E &:=& n | X | E~iop~E &$ integer expressions$\\
+B &:=& b | E~bop~E | \mathtt{not}~B | B~lop~B &$ boolean expressions$\\
+C &:=& \mathtt{skip} | X:=E | C;C \\
+&&| \mathtt{if}~B~\mathtt{then}~C~\mathtt{else}~C \\
+&&| \mathtt{while}~B~\mathtt{do}~C &$ commands$\\
+S&\in& \St=\mathbb{V}\rightarrow\Z&$A valid State$\\
+\end{array}
 $$
 \end{frame}
+
+\begin{frame}{\texttt{while}-Programs: semantics}
+\begin{itemize}
+\item Denotational semantics of Integer expression (similar to the one for Boolean expression)
+$$
+\begin{array}{rcl}
+\bbracket{E} &\in& \St \rightarrow \bbracket{int}=\St \rightarrow \Z\\
+\bbracket{n}S &=& n\\
+\bbracket{X}S &=& S(X)\\
+\bbracket{E_1~iop~E_2}S &=& (\bbracket{E_1}S)iop(\bbracket{E_2}S)\\
+\bbracket{n}S &=& n\\
+\end{array}
+$$
+\item Denotational semantics of commands 
+$$
+\begin{array}{rcl}
+\bbracket{C}&\in& \St \rightarrow \St_\perp\\
+\bbracket{\texttt{skip}} &=& \lambda S.\cceil{S}\\
+\bbracket{X:=E} &=& \lambda S.\cceil{S[X \mapsto \bbracket{E}S]}\\
+\bbracket{C_1;C_2} &=& \bbracket{C_2}^*\circ\bbracket{C_1}\\
+\bbracket{\texttt{if} B \texttt{then} C_1 \texttt{else} C_2} &=& \lambda S.\bbracket{B}S \Rightarrow \bbracket{C_1}~|~\bbracket{C_2}\\
+\bbracket{\texttt{while}B\texttt{do}C} &=& fix~f.\lambda S.\bbracket{B}S \Rightarrow f^*(\bbracket{C}S)|\cceil{S}\\
+\end{array}
+$$
+\end{itemize}
+\end{frame}
+
+%\begin{frame}{assas}
+%$$
+%\inferrule*[width=10em,lab=(PE-Cond)]
+%{ \sqsubseteq \rho}
+%{\hat{v} \rho}
+%$$
+%\end{frame}
 
 \end{document}
