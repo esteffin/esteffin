@@ -12,7 +12,7 @@
 \author{Enrico Steffinlongo}
 \title{Simple Relational Correctness Proofs for
 Static Analyses and Program Transformations}
-\subtitle{By Nick Benton}
+\subtitle{Nick Benton}
 %\setbeamercovered{transparent} 
 \setbeamertemplate{navigation symbols}{} 
 %\logo{} 
@@ -61,8 +61,8 @@ Static Analyses and Program Transformations}
 %\tableofcontents
 %\end{frame}
 
-\begin{frame}{Soundness of Program optimization}
-Lot of work on functional languages especially in
+\begin{frame}{Proving correctness of Program optimization}
+Lot of work on functional languages program optimization especially in
 \begin{itemize}
 \item formalization
 \item validation
@@ -70,13 +70,14 @@ Lot of work on functional languages especially in
 Few work on imperative programming languages
 \begin{itemize}
 \item seems trivial
-\item ... but i's not
+\item but i's not
 \end{itemize}
-This work is to proposes three systems (one type based, and two Hoare-logics based) to prove correctness of optimization transformations.
+This work proposes three systems (one type based, and two Hoare-logics based) to prove correctness of optimization transformations.
 \end{frame}
 
 \begin{frame}[fragile]{Optimization transformations}
-Transformation of a program to a semantically equivalent one in order to reduce the time used, or to decrease the resources used.\\
+What is the optimization of a program?\\
+Transformation of a program to a semantically equivalent one in order to reduce the time used to compute, or to decrease the resources used.\\
 Typical imperative program optimization includes:
 \begin{itemize}
 \item constant propagation
@@ -84,6 +85,7 @@ Typical imperative program optimization includes:
 \item program slicing
 \item loop unrolling
 \end{itemize}
+Example\\
 \begin{tabular}{lclcl}
 \begin{lstlisting}
 X := 7;
@@ -142,18 +144,18 @@ X := -X
 In this work we will use the \texttt{while}-language.
 $$
 \begin{array}{rcll}
-\mathbb{V} &=& \{X,Y,\dots\} &$ a set of variables$\\
-n &\in& \Z &$ a number,$\\
-b &\in& \B &$ a boolean literal$\\
-iop &\in& \{+,-,\times,\dots\} \subseteq \Z \times \Z \rightarrow \Z &$ an integer operation$\\
-bop &\in& \{<,=,\dots\} \subseteq \Z \times \Z \rightarrow \B &$ an integer to boolean$\\
-&&&$operation$\\
-lop &\in& \{\wedge,\vee,\dots \} \subseteq \B \times \B \rightarrow \B &$ a logical operation$\\
+X\in\mathbb{V} &=& \{X,Y,\dots\} &$ variables$\\
+n &\in& \Z &$ numbers$\\
+b &\in& \B &$ boolean literal$\\
+iop &\in& \{+,-,\times,\dots\} \subseteq \Z \times \Z \rightarrow \Z &$ integer operations$\\
+bop &\in& \{<,=,\dots\} \subseteq \Z \times \Z \rightarrow \B &$ integer to boolean$\\
+&&&$operations$\\
+lop &\in& \{\wedge,\vee,\dots \} \subseteq \B \times \B \rightarrow \B &$ logical operations$\\
 E &:=& n | X | E~iop~E &$ integer expressions$\\
 B &:=& b | E~bop~E | \mathtt{not}~B | B~lop~B &$ boolean expressions$\\
 C &:=& \mathtt{skip} | X:=E | C;C \\
-&&| \mathtt{if}~B~\mathtt{then}~C~\mathtt{else}~C \\
-&&| \mathtt{while}~B~\mathtt{do}~C &$ commands$\\
+&&| \ifc{B}{C}{C} \\
+&&| \while{B}{C} &$ commands$\\
 S&\in& \St=\mathbb{V}\rightarrow\Z&$A valid State$\\
 \end{array}
 $$
@@ -178,8 +180,8 @@ $$
 \bbracket{\texttt{skip}} &=& \lambda S.\cceil{S}\\
 \bbracket{X:=E} &=& \lambda S.\cceil{S[X \mapsto \bbracket{E}S]}\\
 \bbracket{C_1;C_2} &=& \bbracket{C_2}^*\circ\bbracket{C_1}\\
-\bbracket{\texttt{if} B \texttt{then} C_1 \texttt{else} C_2} &=& \lambda S.\bbracket{B}S \Rightarrow \bbracket{C_1}~|~\bbracket{C_2}\\
-\bbracket{\texttt{while}B\texttt{do}C} &=& fix~f.\lambda S.\bbracket{B}S \Rightarrow f^*(\bbracket{C}S)|\cceil{S}\\
+\bbracket{\ifc{B}{C_1}{C_2}} &=& \lambda S.\bbracket{B}S \Rightarrow \bbracket{C_1}~|~\bbracket{C_2}\\
+\bbracket{\while{B}{C}} &=& fix~f.\lambda S.\bbracket{B}S \Rightarrow f^*(\bbracket{C}S)|\cceil{S}\\
 \end{array}
 $$
 \end{itemize}
@@ -189,13 +191,13 @@ $$
 The DDCC type system is used to prove correctness of some program transformations.
 \begin{itemize}
 \item non-standard type system
-\item it derives typed equality between expressions and commands
-\item it works on pairs of programs
-\item has simple types for expressions
-\item has maps from variables to simple types for states
+\item derives typed equality between expressions and commands
+\item works on pairs of programs
+\item simple types for expressions
+\item maps from variables to simple types for states
 \item can be seen as a non-interference type system 
-\item it captures only decisions based on known variables. So it is not able to capture patterns like in example 2 in table \{\ref{Examples}\}
-\item does not capture code-motion transformation
+\item captures only decisions based on known variables. So it is not able to capture patterns like in example 2 in table \{\ref{Examples}\}
+\item not capture code-motion transformation
 \end{itemize}
 Using DDCC we can prove the equivalence of the example 1 in table \{\ref{Examples}\}
 \end{frame}
@@ -204,9 +206,9 @@ Using DDCC we can prove the equivalence of the example 1 in table \{\ref{Example
 A simple type $\phi_\tau:=\mathbb{F}_\tau~|~\{c\}_\tau~|~\Delta_\tau~|~\mathbb{T}_\tau$ where $\tau\in\{\mathtt{int,bool}\}$ and $c$ is a constant.
 \begin{itemize}
 \item $\mathbb{F}_\tau$ is an empty type
-\item $\{c\}_\tau$ is the type of a constant $c$ ($5~5 \in \{5,5\}_{int}$)
+\item $\{c\}_\tau$ is the type of a constant $c$ ($5 \in \{5,5\}_{int}$)
 \item $\Delta_\tau$ is the type of an unknown expression (if we do not know the value of X $(X + X) \in \Delta_{int}$)
-\item $\mathbb{T}_\tau$ is the type of an expression that we do not care any more.
+\item $\mathbb{T}_\tau$ is the type of an expression that we do not care.
 \end{itemize}
 A state type $\Phi := -~|~\Phi,X:\phi_{int}$ is a map from variable to simple types.\\
 Judgements are of the form
@@ -226,7 +228,7 @@ Some simple DDCC core judgements for are:
 \item $\inferrule{\vdash C_1\sim C'_1:\Phi\Rightarrow\Phi'\\\vdash C_2\sim C'_2:\Phi'\Rightarrow\Phi''}{\vdash (C_1;C_2)\sim (C'_1;C'_2) : \Phi\Rightarrow \Phi''}$
 \item $\inferrule{\vdash B \sim B':\Phi\Rightarrow\Delta_{\mathtt{bool}}\\ \vdash C\sim C' : \Phi\Rightarrow\Phi}{\vdash (\while{B}{C})\sim (\while{B'}{C'}) : \Phi\Rightarrow \Phi}$
 \end{itemize}
-These rules are able to prove relations on the same phrase to itself.
+These rules are able to prove relations between a phrase to itself.
 \end{frame}
 
 \begin{frame}{DDCC judgements}
@@ -287,7 +289,7 @@ $$
 
 \newcommand{\vchev}[2]{#1\chevrons{#2}}
 \begin{frame}{RHL: core}
-Some simple RHL core judgements for are:
+Some simple RHL core judgements are:
 \begin{small}
 \begin{itemize}
 \item $\vdash \mathtt{skip} \sim \mathtt{skip} : \Phi \Rightarrow \Phi$
@@ -319,13 +321,20 @@ dead while &\begin{tiny}$\vdash (\while{B}{C}\sim \mathtt{skip}:\Phi\wedge\matht
 \end{small}
 \end{frame}
 
+\begin{frame}{Questions}
+\begin{center}
+\begin{Huge}
+Questions?
+\end{Huge}
+\end{center}
+\end{frame}
 
-%\begin{frame}{assas}
-%$$
-%\inferrule*[width=10em,lab=(PE-Cond)]
-%{ \sqsubseteq \rho}
-%{\hat{v} \rho}
-%$$
-%\end{frame}
+\begin{frame}{Thanks}
+\begin{center}
+\begin{Huge}
+Thanks!
+\end{Huge}
+\end{center}
+\end{frame}
 
 \end{document}
