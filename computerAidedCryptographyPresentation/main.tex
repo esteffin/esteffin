@@ -47,6 +47,9 @@ Static Analyses and Program Transformations}
 \newcommand{\St}{\mathbb{S}}
 \newcommand{\bbracket}[1]{\llbracket #1 \rrbracket}
 \newcommand{\cceil}[1]{\lceil #1 \rceil}
+\newcommand{\while}[2]{\mathtt{while}~#1~\mathtt{do}~#2}
+\newcommand{\ifc}[3]{\mathtt{if}~#1~\mathtt{then}~#2~\mathtt{else}#3}
+\newcommand{\chevrons}[1]{\langle #1\rangle}
 
 \begin{document}
 
@@ -135,36 +138,8 @@ X := -X
 \end{table}
 \end{frame}
 
-\begin{frame}{Dependency, Dead Code and Constant (DDCC)}
-\begin{itemize}
-\item Non-standard type system
-\item it derives typed equality between expressions and commands
-\item it works on pairs of programs
-\item has simple types for expressions
-\item has maps from variables to simple types for states
-\item can be seen as a non-interference type system 
-\item it captures only decisions based on known variables. So it is not able to capture patterns like in example 2 of table \{\ref{Examples}\}
-\item does not capture code-motion transformation
-\end{itemize}
-\end{frame}
-
-\begin{frame}{DDCC}
-A simple type $\phi_\tau:=\mathbb{F}_\tau~|~\{c\}_\tau~|~\Delta_\tau~|~\mathbb{T}_\tau$ where $\tau\in\{\mathtt{int,bool}\}$ and $c$ is a constant.
-\begin{itemize}
-\item $\mathbb{F}_\tau$ is an empty type
-\item $\{c\}_\tau$ is the type of a constant $c$ ($5~5 \in \{5,5\}_{int}$)
-\item $\Delta_\tau$ is the type of an unknown expression (if we do not know the value of X $(X + X) \in \Delta_{int}$)
-\item $\mathbb{T}_\tau$ is the type of an expression that we do not care any more.
-\end{itemize}
-A state type $\Phi := -~|~\Phi,X:\phi_{int}$ is a map from variable to simple types.\\
-Judgements are of the form
-\begin{itemize}
-\item $\vdash E~E':\Phi\Rightarrow\phi_\tau$ for expressions.
-\item $\vdash C~C':\Phi\Rightarrow\Phi'$ for commands.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{\texttt{while}-Programs: syntax}
+\begin{frame}{The \texttt{while}-language: syntax}
+In this work we will use the \texttt{while}-language.
 $$
 \begin{array}{rcll}
 \mathbb{V} &=& \{X,Y,\dots\} &$ a set of variables$\\
@@ -209,6 +184,141 @@ $$
 $$
 \end{itemize}
 \end{frame}
+
+\begin{frame}{Dependency, Dead Code and Constant (DDCC)}
+The DDCC type system is used to prove correctness of some program transformations.
+\begin{itemize}
+\item non-standard type system
+\item it derives typed equality between expressions and commands
+\item it works on pairs of programs
+\item has simple types for expressions
+\item has maps from variables to simple types for states
+\item can be seen as a non-interference type system 
+\item it captures only decisions based on known variables. So it is not able to capture patterns like in example 2 in table \{\ref{Examples}\}
+\item does not capture code-motion transformation
+\end{itemize}
+Using DDCC we can prove the equivalence of the example 1 in table \{\ref{Examples}\}
+\end{frame}
+
+\begin{frame}{DDCC}
+A simple type $\phi_\tau:=\mathbb{F}_\tau~|~\{c\}_\tau~|~\Delta_\tau~|~\mathbb{T}_\tau$ where $\tau\in\{\mathtt{int,bool}\}$ and $c$ is a constant.
+\begin{itemize}
+\item $\mathbb{F}_\tau$ is an empty type
+\item $\{c\}_\tau$ is the type of a constant $c$ ($5~5 \in \{5,5\}_{int}$)
+\item $\Delta_\tau$ is the type of an unknown expression (if we do not know the value of X $(X + X) \in \Delta_{int}$)
+\item $\mathbb{T}_\tau$ is the type of an expression that we do not care any more.
+\end{itemize}
+A state type $\Phi := -~|~\Phi,X:\phi_{int}$ is a map from variable to simple types.\\
+Judgements are of the form
+\begin{itemize}
+\item $\vdash E\sim E':\Phi\Rightarrow\phi_\tau$ for expressions,
+\item $\vdash C\sim C':\Phi\Rightarrow\Phi'$ for commands.
+\end{itemize}
+We will use $\vdash C : \Phi \Rightarrow \Phi$ as shorthand for $\vdash C\sim C : \Phi \Rightarrow \Phi$
+\end{frame}
+
+\begin{frame}{DDCC core judgements}
+Some simple DDCC core judgements for are:
+\begin{itemize}
+\item $\vdash n \sim n : \Phi \Rightarrow \{n\}_{int}$
+\item $\vdash X \sim X : \Phi,X:\phi_{int} \Rightarrow \phi_{int}$
+\item $\vdash \mathtt{skip} \sim \mathtt{skip} : \Phi \Rightarrow \Phi$
+\item $\inferrule{\vdash C_1\sim C'_1:\Phi\Rightarrow\Phi'\\\vdash C_2\sim C'_2:\Phi'\Rightarrow\Phi''}{\vdash (C_1;C_2)\sim (C'_1;C'_2) : \Phi\Rightarrow \Phi''}$
+\item $\inferrule{\vdash B \sim B':\Phi\Rightarrow\Delta_{\mathtt{bool}}\\ \vdash C\sim C' : \Phi\Rightarrow\Phi}{\vdash (\while{B}{C})\sim (\while{B'}{C'}) : \Phi\Rightarrow \Phi}$
+\end{itemize}
+These rules are able to prove relations on the same phrase to itself.
+\end{frame}
+
+\begin{frame}{DDCC judgements}
+Judgements used to prove equivalences of transformed programs.\\
+\vspace{.3cm}
+\begin{small}
+\begin{tabular}{lr}
+sequential unit laws & \begin{tiny}$\inferrule {\vdash C\sim C:\Phi\Rightarrow\Phi}{\vdash (\mathtt{skip};C)\sim C:\Phi\Rightarrow\Phi'}$\end{tiny}\\
+associativity & \begin{tiny}$\inferrule {\vdash (C_1;C_2);C_3:\Phi\Rightarrow\Phi'}{\vdash ((C_1;C_2);C_3)\sim(C_1;(C_2;C_3)):\Phi\Rightarrow\Phi'}$\end{tiny}\\
+commuting conversion for conditionals\\
+loop unrolling\\
+self-assignment elimination & \begin{tiny}$\vdash (X:=X)\sim\mathtt{skip}:\Phi,X:\phi_{int}\Rightarrow\Phi,X:\phi_{int}$\end{tiny}\\
+dead-assignment elimination & \begin{tiny}$\vdash (X:=E)\sim\mathtt{skip}:\Phi,X:\phi_{int}\Rightarrow\Phi,X:\mathbb{T}_{int}$\end{tiny}\\
+equivalent branches for conditionals & \begin{tiny}$\inferrule{\vdash C_1\sim C_2:\Phi\Rightarrow \Phi'}{\ifc{B}{C_1}{C_2}\sim C_1:\Phi\Rightarrow \Phi'}$\end{tiny}\\
+constant folding & \begin{tiny}$\inferrule {\vdash F_\tau:\Phi\Rightarrow \{c\}_\tau}{\vdash F_\tau\sim c:\Phi\Rightarrow \{c\}_\tau}$\end{tiny}\\
+known branch for conditional & \begin{tiny}$\inferrule{\vdash B:\Phi\Rightarrow \{true\}\\ \vdash C_1\sim C' :\Phi\Rightarrow\Phi'}{\ifc{B}{C_1}{C_2}\sim C':\Phi\Rightarrow \Phi'}$\end{tiny}\\
+dead while &\begin{tiny}$\inferrule{\vdash B:\Phi \Rightarrow \{false\}}{\vdash (\while{B}{C}\sim \mathtt{skip}:\Phi\Rightarrow\Phi}$\end{tiny}\\
+divergence for while\\
+\end{tabular}
+\end{small}
+\end{frame}
+
+\begin{frame}{Relational Hoare Logic}
+To increase the capabilities of the analysis this work proposes a system based on Relational Hoare Logics. It is based on\\
+$$
+\begin{array}{rcll}
+GE &:=& n~|~X\chevrons{1}~|~X\chevrons{2}~|~GE~iop~GE:&$ generalized expressions$\\
+\Phi &:=& b~|~GE~bop~GE~|~\mathtt{not}\Phi~|~\Phi~lop~\Phi:&$ relational assertions$\\
+\end{array}
+$$
+
+Judgements are of the form:
+$$
+\vdash C\sim C':\Phi\Rightarrow\Phi'
+$$
+\end{frame}
+
+\begin{frame}{Relational Hoare Logic: semantics}
+The semantics of GE, and $\Phi$ are:\\
+$$
+\begin{array}{rcl}
+\bbracket{GE}& \in & \St\times\St\rightarrow\Z\\
+\bbracket{n}(S_1,S_2)& = & n\\
+\bbracket{X\chevrons{1}}(S_1,S_2)& = & S_1(X)\\
+\bbracket{X\chevrons{2}}(S_1,S_2)& = & S_2(X)\\
+\bbracket{E~iop~F}(S_1,S_2)& = & (\bbracket{E}(S_1,S_2))~iop~(\bbracket{F}(S_1,S_2))\\
+\\
+\bbracket{\Phi}&\in& \St \times \St\\
+&=&\{(S,S')|\chi_\Phi(S,S')=true\}\\
+\chi_{true}(S,S')&=&true\\
+\chi_{false}(S,S')&=&false\\
+\chi_{E~bop~F}(S,S')&=&(\bbracket{E}(S_1,S_2))~bop~(\bbracket{F}(S_1,S_2))\\
+\chi_{\Phi~lop~\Phi'}(S,S')&=&(\chi_{\Phi}(S_1,S_2))~lop~(\chi_{\Phi'}(S_1,S_2))\\
+\chi_{\mathtt{not}\Phi}(S,S')&=&\neg(\chi_{\Phi}(S_1,S_2))\\
+\end{array}
+$$
+\end{frame}
+
+\newcommand{\vchev}[2]{#1\chevrons{#2}}
+\begin{frame}{RHL: core}
+Some simple RHL core judgements for are:
+\begin{small}
+\begin{itemize}
+\item $\vdash \mathtt{skip} \sim \mathtt{skip} : \Phi \Rightarrow \Phi$
+\item $\vdash X:=E\sim Y:=E':\Phi[\vchev{E}{1}/\vchev{X}{1},\vchev{E'}{2}/\vchev{Y}{2}]\Rightarrow\Phi$
+\item $\inferrule{\vdash C_1\sim C'_1:\Phi\Rightarrow\Phi'\\\vdash C_2\sim C'_2:\Phi'\Rightarrow\Phi''}{\vdash (C_1;C_2)\sim (C'_1;C'_2) : \Phi\Rightarrow \Phi''}$
+\item $\inferrule{\vdash C\sim C' : \Phi \wedge (\vchev{B}{1}\wedge\vchev{B'}{2}) \Rightarrow \Phi \wedge (\vchev{B}{1}=\vchev{B'}{2})}{\vdash (\while{B}{C})\sim (\while{B'}{C'}) :\\ \Phi \wedge (\vchev{B}{1}=\vchev{B'}{2}) \Rightarrow \Phi \wedge \mathtt{not} (\vchev{B}{1}\vee\vchev{B'}{2})} $
+\end{itemize}
+\end{small}
+\end{frame}
+
+\begin{frame}{RHL: judgements}
+Judgements used to prove equivalences of transformed programs.\\
+\vspace{.3cm}
+\begin{small}
+\begin{tabular}{lr}
+\hline\\
+falsity & \begin{tiny}$C\sim C':false\Rightarrow\Phi$\end{tiny}\\
+\hline\\
+dead-assignment elimination & \begin{tiny}$\vdash (X:=E)\sim\mathtt{skip}:\Phi[\vchev{E}{1}/\vchev{X}{1}]\Rightarrow\Phi$\end{tiny}\\
+\hline\\
+common branch & \begin{tiny}$
+\inferrule
+	{\vdash C\sim D :\Phi\wedge\vchev{B}{1}\Rightarrow\Phi'\\\\ \vdash C\sim D :\Phi\wedge\mathtt{not}\vchev{B}{1}\Rightarrow\Phi'}
+	{\ifc{B}{C}{C'}\sim D:\Phi\Rightarrow \Phi'}$\end{tiny}\\
+\hline\\
+dead while &\begin{tiny}$\vdash (\while{B}{C}\sim \mathtt{skip}:\Phi\wedge\mathtt{not}\vchev{B}{1} \Rightarrow \Phi\wedge\mathtt{not}\vchev{B}{1}$\end{tiny}\\
+\hline
+\end{tabular}
+\end{small}
+\end{frame}
+
 
 %\begin{frame}{assas}
 %$$
